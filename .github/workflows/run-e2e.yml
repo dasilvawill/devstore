@@ -6,7 +6,7 @@ jobs:
   cypress-run:
     runs-on: ubuntu-22.04
 
-    env: # Definindo variáveis de ambiente globalmente para que todas as etapas possam acessá-las
+    env: 
       NEXT_PUBLIC_API_BASE_URL: "https://ignite-devstore-api-beta-steel.vercel.app"
       APP_URL: "http://localhost:3000"
 
@@ -21,6 +21,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
+      - name: Cache Next.js build
+        uses: actions/cache@v3
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-
+
       - name: Install dependencies
         run: npm ci
 
@@ -28,13 +36,25 @@ jobs:
         run: npm run build
 
       - name: Start the application
-        run: npm start &
+        run: |
+          npm start &
+          echo $! > .pidfile
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ env.NEXT_PUBLIC_API_BASE_URL }}
+          APP_URL: ${{ env.APP_URL }}
         
       - name: Wait for the application to be ready
-        run: npx wait-on http://localhost:3000
+        run: npx wait-on ${{ env.APP_URL }}
 
       - name: Run Cypress tests
         uses: cypress-io/github-action@v6
         with:
-          wait-on: "http://localhost:3000"
+          wait-on: ${{ env.APP_URL }}
           start: npm start
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ env.NEXT_PUBLIC_API_BASE_URL }}
+          APP_URL: ${{ env.APP_URL }}
+
+      - name: Stop the application
+        run: kill $(cat .pidfile)
+        if: always()
