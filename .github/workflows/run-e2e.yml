@@ -9,7 +9,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name Install Node.js
+      - name: Install Node.js
         uses: action/setup-node@v3
         with:
           node-version: 20
