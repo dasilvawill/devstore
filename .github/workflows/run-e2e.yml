@@ -6,33 +6,34 @@ jobs:
   cypress-run:
     runs-on: ubuntu-22.04
 
+    env: # Definindo variáveis de ambiente globalmente para que todas as etapas possam acessá-las
+      NEXT_PUBLIC_API_BASE_URL: "https://ignite-devstore-api-beta-steel.vercel.app"
+      APP_URL: "http://localhost:3000"
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: 'package-lock.json'  # Adicione o caminho do cache de dependências
+          cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
-        run: npm ci  # 'npm ci' é preferível para CI/CD pois é mais rápido e reproduzível
+        run: npm ci
 
       - name: Build the project
         run: npm run build
 
       - name: Start the application
         run: npm start &
-        env:
-          APP_URL: "http://localhost:3000"
-          NEXT_PUBLIC_API_BASE_URL: "https://ignite-devstore-api-beta-steel.vercel.app"
-
-      - name: Wait for application to be ready
+        
+      - name: Wait for the application to be ready
         run: npx wait-on http://localhost:3000
 
-      - name: Cypress run
+      - name: Run Cypress tests
         uses: cypress-io/github-action@v6
         with:
           wait-on: "http://localhost:3000"
