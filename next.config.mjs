@@ -15,24 +15,6 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    appDir: true,
-  },
-  async redirects() {
-    return []
-  },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Ignorar erros de build
-    if (!isServer) {
-      config.module.rules.push({
-        test: /_error\.js$/,
-        use: {
-          loader: 'ignore-loader',
-        },
-      })
-    }
-    return config
-  },
 }
 
 export default nextConfig
