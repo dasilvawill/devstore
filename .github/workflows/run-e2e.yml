@@ -5,42 +5,31 @@ on: push
 jobs:
   cypress-run:
     runs-on: ubuntu-22.04
-
-    env: 
-      NEXT_PUBLIC_API_BASE_URL: "https://ignite-devstore-api.vercel.app"
-      APP_URL: "http://localhost:3000"
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Install Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
-      - name: Cache npm
+      - name: Install dependencies
+        run: npm install
+
+      - name: Cache node modules
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-npm-
+            ${{ runner.os }}-node-
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build the project
-        run: npm run build
-
-      - name: Start the application
-        run: npm start &
-
-      - name: Wait for the application to be ready
-        run: npx wait-on ${{ env.APP_URL }}
-
-      - name: Run Cypress tests
+      - name: Cypress run
         uses: cypress-io/github-action@v6
+        env:
+          APP_URL: "http://localhost:3000"
+          NEXT_PUBLIC_API_BASE_URL: "https://ignite-devstore-api.vercel.app"
         with:
+          build: npm run build
           start: npm start
-          wait-on: ${{ env.APP_URL }}
